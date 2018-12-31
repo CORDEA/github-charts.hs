@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 
 executable github-charts
   main-is:             Main.hs
-  -- other-modules:       
+  other-modules:       Option
   -- other-extensions:    
   build-depends:       base >=4.10 && <4.11, HTTP, http-conduit, http-types, network-uri, aeson, text, bytestring, optparse-applicative
   hs-source-dirs:      src
