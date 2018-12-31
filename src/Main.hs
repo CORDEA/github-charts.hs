@@ -14,14 +14,53 @@
 -- Author: Yoshihiro Tanaka <contact@cordea.jp>
 -- date  : 2018-12-31
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
+import Network.HTTP.Conduit
+import Network.HTTP.Types.Header
+import Network.HTTP.Base ( defaultUserAgent )
+import Network.URI ( parseURI )
+import Data.ByteString.Lazy
 import Options.Applicative
 import qualified Option
+import qualified Data.ByteString.Char8 as B
+
+baseUrl :: String
+baseUrl = "https://api.github.com"
+
+setHeaders :: Request -> String -> Request
+setHeaders req token =
+    req {
+        requestHeaders =
+            ( hAccept, B.pack "application/vnd.github.raw+json" ) :
+            ( hAuthorization, B.pack tokenHeader ) :
+            ( hUserAgent, B.pack defaultUserAgent ) :
+            requestHeaders req
+        }
+    where
+        tokenHeader = "token " ++ token
+
+buildRequest :: String -> String -> Request
+buildRequest token path =
+    setHeaders req { method = "GET" } token
+    where
+        url = baseUrl ++ path
+        Just req = parseUrlThrow url
+
+sendRequest :: Request -> IO ( Response ByteString )
+sendRequest req =
+    newManager tlsManagerSettings >>= \m ->
+        httpLbs req m
+
+fetched :: Response ByteString -> IO ()
+fetched response =
+    return ()
 
 fetchContributions :: Option.CommonOpts -> IO ()
 fetchContributions commonOpts =
-    putStrLn token
+    fetched =<< sendRequest ( buildRequest token "" )
     where
         ( Option.CommonOpts token ) = commonOpts
 
