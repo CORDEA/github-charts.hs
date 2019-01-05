@@ -12,32 +12,18 @@
 -- limitations under the License.
 --
 -- Author: Yoshihiro Tanaka <contact@cordea.jp>
--- date  : 2018-12-31
+-- date  : 2019-01-01
 
-module Option where
+module Contribution where
 
-import Options.Applicative
-import Data.Monoid
+data Contribution = Contribution {
+    date :: String,
+    commits :: Int
+    } deriving Show
 
-data Args = Args CommonOpts
-    deriving Show
-
-data CommonOpts = CommonOpts
-    {
-        token :: String
-    }
-    deriving Show
-
-commonOpts :: Parser CommonOpts
-commonOpts = CommonOpts
-    <$> strOption
-        ( long "token"
-        <> help "GitHub access token." )
-
-parserArgs :: Parser Args
-parserArgs = Args
-    <$> commonOpts
-
-parser :: ParserInfo Args
-parser = info parserArgs
-    ( progDesc "GitHub charts command" )
+forOutput :: Contribution -> String
+forOutput cont =
+    d ++ " " ++ c
+    where
+        d = date cont
+        c = show $ commits cont

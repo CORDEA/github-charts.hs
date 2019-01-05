@@ -22,50 +22,48 @@ import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
 import Network.HTTP.Base ( defaultUserAgent )
 import Network.URI ( parseURI )
-import Data.ByteString.Lazy
-import Options.Applicative
-import qualified Option
-import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Lazy  ( ByteString )
+import Data.Text.Lazy.Encoding
+import Text.HTML.TagSoup
+import Data.Semigroup ((<>))
+import Contribution
+import qualified Data.Text.Lazy as T
+import qualified HTMLParser
 
-baseUrl :: String
-baseUrl = "https://api.github.com"
+url :: String
+url = "https://github.com/users/CORDEA/contributions"
 
-setHeaders :: Request -> String -> Request
-setHeaders req token =
-    req {
-        requestHeaders =
-            ( hAccept, B.pack "application/vnd.github.raw+json" ) :
-            ( hAuthorization, B.pack tokenHeader ) :
-            ( hUserAgent, B.pack defaultUserAgent ) :
-            requestHeaders req
-        }
-    where
-        tokenHeader = "token " ++ token
+date :: [String]
+date = [
+    "2015-01-01",
+    "2016-01-01",
+    "2017-01-01",
+    "2018-01-01",
+    "2019-01-01"
+    ]
 
-buildRequest :: String -> String -> Request
-buildRequest token path =
-    setHeaders req { method = "GET" } token
-    where
-        url = baseUrl ++ path
-        Just req = parseUrlThrow url
+toQuery :: String -> String
+toQuery [] = ""
+toQuery query = "?to=" ++ query
 
-sendRequest :: Request -> IO ( Response ByteString )
-sendRequest req =
+buildUrl :: String -> String
+buildUrl date =
+    url ++ toQuery date
+
+sendRequest :: IO ( Response ByteString )
+sendRequest =
     newManager tlsManagerSettings >>= \m ->
         httpLbs req m
+    where
+        Just req = parseUrlThrow $ buildUrl "2018-01-01"
 
 fetched :: Response ByteString -> IO ()
 fetched response =
-    return ()
-
-fetchContributions :: Option.CommonOpts -> IO ()
-fetchContributions commonOpts =
-    fetched =<< sendRequest ( buildRequest token "" )
+    putStrLn $ unlines $ map ( forOutput ) parsed
     where
-        ( Option.CommonOpts token ) = commonOpts
-
-parsed :: Option.Args -> IO ()
-parsed ( Option.Args args ) = fetchContributions args
+        resp = responseBody response
+        tags = parseTags $ T.unpack $ decodeUtf8 resp
+        parsed = HTMLParser.parse tags
 
 main :: IO ()
-main = parsed =<< execParser Option.parser
+main = fetched =<< sendRequest
