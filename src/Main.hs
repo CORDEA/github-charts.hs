@@ -24,8 +24,10 @@ import Network.HTTP.Base ( defaultUserAgent )
 import Network.URI ( parseURI )
 import Data.ByteString.Lazy  ( ByteString )
 import Data.Text.Lazy.Encoding
-import Text.HTML.TagSoup
 import Data.Semigroup ((<>))
+import Graphics.Rendering.Chart.Easy
+import Graphics.Rendering.Chart.Backend.Cairo
+import Text.HTML.TagSoup
 import Contribution
 import qualified Data.Text.Lazy as T
 import qualified HTMLParser
@@ -59,7 +61,9 @@ sendRequest =
 
 fetched :: Response ByteString -> IO ()
 fetched response =
-    putStrLn $ unlines $ map ( forOutput ) parsed
+    toFile def "chart.png" $ do
+        layout_title .= ""
+        plot ( line "contributions" [ [ (d, c) | (Contribution d c) <- parsed ] ] )
     where
         resp = responseBody response
         tags = parseTags $ T.unpack $ decodeUtf8 resp

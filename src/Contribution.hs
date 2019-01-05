@@ -16,10 +16,10 @@
 
 module Contribution where
 
+import Data.Time.LocalTime
+
 data Contribution = Contribution {
-    year :: Int,
-    month :: Int,
-    day :: Int,
+    date :: LocalTime,
     commits :: Int
     } deriving Show
 

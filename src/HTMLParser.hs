@@ -18,13 +18,21 @@ module HTMLParser where
 
 import Text.HTML.TagSoup
 import Data.List.Split
+import Data.Time.Calendar
+import Data.Time.LocalTime
 import Contribution
+
+toDate :: [Int] -> LocalTime
+toDate dates =
+    LocalTime ( fromGregorian ( fromIntegral year ) month day ) midnight
+    where
+        year = dates !! 0
+        month = dates !! 1
+        day = dates !! 2
 
 toContribution :: Tag String -> Contribution
 toContribution tag = Contribution {
-    year = dates !! 0,
-    month = dates !! 1,
-    day = dates !! 2,
+    date = toDate dates,
     commits = ( read $ fromAttrib "data-count" tag )
     }
     where
