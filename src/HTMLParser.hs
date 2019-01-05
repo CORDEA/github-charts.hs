@@ -28,7 +28,7 @@ toDate dates =
     where
         year = dates !! 0
         month = dates !! 1
-        day = dates !! 2
+        day = 1
 
 toContribution :: Tag String -> Contribution
 toContribution tag = Contribution {

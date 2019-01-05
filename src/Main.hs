@@ -63,11 +63,12 @@ fetched :: Response ByteString -> IO ()
 fetched response =
     toFile def "chart.png" $ do
         layout_title .= ""
-        plot ( line "contributions" [ [ (d, c) | (Contribution d c) <- parsed ] ] )
+        plot ( line "contributions" [ [ (d, c) | (Contribution d c) <- grouped ] ] )
     where
         resp = responseBody response
         tags = parseTags $ T.unpack $ decodeUtf8 resp
         parsed = HTMLParser.parse tags
+        grouped = perMonth parsed
 
 main :: IO ()
 main = fetched =<< sendRequest

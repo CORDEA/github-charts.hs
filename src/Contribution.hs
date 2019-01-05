@@ -17,14 +17,22 @@
 module Contribution where
 
 import Data.Time.LocalTime
+import Data.List
 
 data Contribution = Contribution {
     date :: LocalTime,
     commits :: Int
     } deriving Show
 
-forOutput :: Contribution -> String
-forOutput cont =
-    c
+groupByMonth :: [Contribution] -> Contribution
+groupByMonth conts =
+    Contribution {
+        date = first,
+        commits = sum $ map ( \(Contribution _ c) -> c ) conts
+        }
     where
-        c = show $ commits cont
+        first = date $ conts !! 0
+
+perMonth :: [Contribution] -> [Contribution]
+perMonth conts =
+    map ( groupByMonth ) $ groupBy ( \(Contribution d1 _) (Contribution d2 _) -> d1 == d2 ) conts
