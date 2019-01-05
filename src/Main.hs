@@ -35,8 +35,8 @@ import qualified HTMLParser
 url :: String
 url = "https://github.com/users/CORDEA/contributions"
 
-date :: [String]
-date = [
+dates :: [String]
+dates = [
     "2015-01-01",
     "2016-01-01",
     "2017-01-01",
@@ -52,23 +52,32 @@ buildUrl :: String -> String
 buildUrl date =
     url ++ toQuery date
 
-sendRequest :: IO ( Response ByteString )
-sendRequest =
+sendRequest :: String -> IO ( Response ByteString )
+sendRequest date =
     newManager tlsManagerSettings >>= \m ->
         httpLbs req m
     where
-        Just req = parseUrlThrow $ buildUrl "2018-01-01"
+        Just req = parseUrlThrow $ buildUrl date
 
-fetched :: Response ByteString -> IO ()
-fetched response =
-    toFile def "chart.png" $ do
+fetched :: Response ByteString -> String -> IO ()
+fetched response date =
+    toFile def name $ do
         layout_title .= ""
         plot ( line "contributions" [ [ (d, c) | (Contribution d c) <- grouped ] ] )
     where
+        name = "chart" ++ date ++ ".png"
         resp = responseBody response
         tags = parseTags $ T.unpack $ decodeUtf8 resp
         parsed = HTMLParser.parse tags
         grouped = perMonth parsed
 
+fetch :: [String] -> IO ()
+fetch [] =
+    return ()
+fetch (x:xs) = do
+    sendRequest x >>= \r ->
+        fetched r x
+    fetch xs
+
 main :: IO ()
-main = fetched =<< sendRequest
+main = fetch dates
