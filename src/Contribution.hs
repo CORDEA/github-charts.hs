@@ -17,13 +17,14 @@
 module Contribution where
 
 data Contribution = Contribution {
-    date :: String,
+    year :: Int,
+    month :: Int,
+    day :: Int,
     commits :: Int
     } deriving Show
 
 forOutput :: Contribution -> String
 forOutput cont =
-    d ++ " " ++ c
+    c
     where
-        d = date cont
         c = show $ commits cont

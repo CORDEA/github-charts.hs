@@ -17,16 +17,22 @@
 module HTMLParser where
 
 import Text.HTML.TagSoup
+import Data.List.Split
 import Contribution
+
+toContribution :: Tag String -> Contribution
+toContribution tag = Contribution {
+    year = dates !! 0,
+    month = dates !! 1,
+    day = dates !! 2,
+    commits = ( read $ fromAttrib "data-count" tag )
+    }
+    where
+        dates = map ( read ) $ splitOn "-" ( fromAttrib "data-date" tag )
 
 parse :: [Tag String] -> [Contribution]
 parse tags =
     map (extract . takeWhile (~/= "</>")) . sections (~== "<rect>") $ tags
     where
-        toContribution :: Tag String -> Contribution
-        toContribution tags = Contribution {
-            date = ( fromAttrib "data-date" tags ),
-            commits = ( read $ fromAttrib "data-count" tags )
-            }
         extract :: [Tag String] -> Contribution
         extract tags = toContribution $ tags !! 0
